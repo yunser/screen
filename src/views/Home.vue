@@ -1,48 +1,32 @@
 <template>
-    <my-page title="评论" :page="page">
+    <my-page title="屏幕" :page="page">
         <div class="common-container container">
-            <ul class="comments-list">
-                <li class="item" v-for="comment in comments">
-                    <div class="wrap">
-                        <img class="avatar" :src="comment.user.avatar" @click="viewUser(comment.user)">
-                        <div class="info">
-                            <div class="name">{{ comment.user.name }}</div>
-                            <div class="content">{{ comment.content }}</div>
-
-                            <div class="meta">
-                                <div class="time">{{ comment.createTime | time }}</div>
-                                <div class="like" @click="like(comment)">赞{{ comment.likeCount ? `(${comment.likeCount})` : '' }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="line">
-                        <div class="line-content"></div>
-                    </div>
-                </li>
-            </ul>
-            <div v-if="!this.$store.state.user">
-                请<a href="#" @click.prevent="login">登录</a>后评论
-            </div>
-            <textarea class="form-control" v-model="content" cols="30" rows="4" :disabled="!this.$store.state.user" 
-                :placeholder="this.$store.state.user ? '有何高见，发表一下' : '请登录后评论'"></textarea>
-            <br>
-            <ui-raised-button primary label="评论" @click="commnet" />
+            <div :class="['text', isFullScreen ? 'full-screen' : '']" @click="clickText">{{ text }}</div>
         </div>
-        <!-- <ui-float-button class="float-button" icon="add" secondary @click="add" /> -->
+        <div class="status">{{ status }}</div>
     </my-page>
 </template>
 
 <script>
     import oss from '@/util/oss'
+    import config from '@/config'
     const moment = window.moment
 
     export default {
         data () {
             return {
-                content: '',
+                isFullScreen: false,
+                text: 'Hello',
+                status: '未连接',
                 comments: [],
                 page: {
                     menu: [
+                        {
+                            type: 'icon',
+                            icon: 'fullscreen',
+                            click: this.fullScreen,
+                            title: '全屏'
+                        },
                         {
                             type: 'icon',
                             icon: 'apps',
@@ -50,29 +34,45 @@
                             target: '_blank',
                             title: '应用'
                         }
-                        // {
-                        //     type: 'icon',
-                        //     icon: 'help',
-                        //     to: '/help'
-                        // }
                     ]
                 }
             }
         },
         mounted() {
-            this.loadData()
+            this.initWebSocket()
         },
         methods: {
-            loadData() {
-                this.$http.get('/types/test/comments').then(
-                    response => {
-                        let data = response.data
-                        console.log(data)
-                        this.comments = data
-                    },
-                    response => {
-                        console.log(response)
+            clickText() {
+                if (this.isFullScreen) {
+                    this.isFullScreen = false
+                }
+            },
+            fullScreen() {
+                this.isFullScreen = true
+            },
+            initWebSocket() {
+                let code = this.$storage.get('screenCode')
+                if (!code) {
+                    code = '' + new Date().getTime() + Math.ceil(Math.random() * 1000)
+                    this.$storage.set('screenCode', code)
+                }
+                console.log('code', code)
+                this.status = '正在链接'
+                this.socket = window.io.connect(config.ws, {
+                    transports: ['websocket', 'xhr-polling', 'jsonp-polling']
+                })
+                this.socket.on('connect', id => {
+                    this.status = '连接成功，正在初始化'
+                    this.socket.emit('code', code)
+                    this.status = `code：${code}`
+                    this.socket.on('text', text => {
+                        console.log('on text', text)
+                        this.text = text
                     })
+                })
+                this.socket.on('connect_failed', id => {
+                    this.status = '连接失败'
+                })
             },
             commnet() {
                 if (!this.$store.state.user) {
@@ -140,88 +140,33 @@
 </script>
 
 <style lang="scss" scoped>
-.slogan {
-    font-size: 32px;
-    margin-bottom: 16px;
+.status {
+    position: absolute;
+    right: 16px;
+    top: 80px;
+    color: #999;
+}
+.text {
+    font-size: 56px;
+    padding: 240px 0;
+    text-align: center;
 }
 .container {
     max-width: 480px;
     // padding: 0 0 80px 0;
 }
-.comments-list {
-    margin-bottom: 24px;
-    .item {
-        &:last-child {
-            .line-content {
-                display: none;
-            }
-        }
-    }
-    .wrap {
-        display: flex;
-        // align-items: center;
-        // height: 56px;
-        // margin-bottom: 8px;
-        padding: 16px 0;
-    }
-    .info {
-        flex-grow: 1;
-    }
-    .line {
-        padding-left: 64px;
-        // border-bottom: 1px solid rgba(0, 0, 0, .12);
-        .line-content {
-            background-color: rgba(0, 0, 0, .12);
-            height: 1px;
-        }
-    }
-    .name {
-        color: #333;
-        font-weight: bold;
-        margin-bottom: 4px;
-        // font-size: 16px;
-    }
-    .avatar {
-        width: 56px;
-        height: 56px;
-        flex-shrink: 0;
-        margin-right: 8px;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    .content {
-        margin-bottom: 8px;
-        color: #666;
-    }
-    .meta {
-        display: flex;
-        align-items: center;
-        font-size: 12px;;
-        color: #999;
-    }
-    .time {
-        margin-right: 16px;
-    }
-    .like {
-        cursor: pointer;
-    }
-}
-textarea.form-control {
-    height: auto;
-}
-.form-control {
-    display: block;
-    width: 100%;
-    max-width: 400px;
-    height: 33px;
-    padding: 6px 12px;
-    font-size: 14px;
-    line-height: 1.42;
-    color: #55595c;
+.full-screen {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 10000000;
     background-color: #fff;
-    background-image: none;
-    border: 1px solid #ccc;
-    border-radius: 2px;
-    outline: none;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
 }
 </style>

@@ -2,13 +2,13 @@
     <ui-page :title="title || page.title" :page="page" :backable="backable" ref="page">
         <div slot="drawer">
             <div class="header">
-                <img class="logo" src="/static/img/ask.svg">
+                <img class="logo" src="https://icons.yunser.com/icons/tool.svg">
             </div>
             <ui-list @itemClick="toggle()">
                 <ui-list-item title="首页" to="/">
                     <ui-icon slot="left" value="home"/>
                 </ui-list-item>
-                <ui-list-item title="关于" href="https://project.yunser.com/products/53511a107ec211e99e4267cc7f7c5ada" target="_blank">
+                <ui-list-item title="关于" href="https://project.yunser.com/products/6b591dc094d811e9a9eac1986cc468ce" target="_blank">
                     <ui-icon slot="left" value="info"/>
                 </ui-list-item>
             </ui-list>
