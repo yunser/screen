@@ -2,6 +2,14 @@ import Vue from 'vue'
 import Router from 'vue-router'
 
 const Home = resolve => require(['@/views/Home'], resolve)
+const ScreenDetail = resolve => require(['@/views/ScreenDetail'], resolve)
+const ScreenControl = resolve => require(['@/views/ScreenControl'], resolve)
+//
+const Ask = resolve => require(['@/views/Ask'], resolve)
+const AskControl = resolve => require(['@/views/AskControl'], resolve)
+const AskDetail = resolve => require(['@/views/AskDetail'], resolve)
+const AskMine = resolve => require(['@/views/AskMine'], resolve)
+//
 const QuestionDetail = resolve => require(['@/views/QuestionDetail'], resolve)
 const QuestionEdit = resolve => require(['@/views/QuestionEdit'], resolve)
 const AnswerEdit = resolve => require(['@/views/AnswerEdit'], resolve)
@@ -20,6 +28,31 @@ let routes = [
         path: '/home',
         component: Home
     },
+    {
+        path: '/asks/:id/control',
+        component: AskControl
+    },
+    {
+        path: '/asks/:id/mine',
+        component: AskMine
+    },
+    {
+        path: '/asks/:id',
+        component: AskDetail
+    },
+    {
+        path: '/screens/:id',
+        component: ScreenDetail
+    },
+    {
+        path: '/screens/:id/control',
+        component: ScreenControl
+    },
+    {
+        path: '/ask',
+        component: Ask
+    },
+    //
     {
         path: '/questions/:id',
         component: QuestionDetail,

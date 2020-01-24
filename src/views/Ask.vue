@@ -1,10 +1,11 @@
 <template>
-    <my-page title="屏幕" :page="page">
+    <my-page title="匿名提问" :page="page">
         <div class="common-container container">
             <div :class="['text', isFullScreen ? 'full-screen' : '']" @click="clickText">{{ text }}</div>
         </div>
         <div class="status">{{ status }}</div>
         <ui-raised-button @click="openUrl">打开链接</ui-raised-button>
+        <ui-raised-button @click="openMine">我要提问</ui-raised-button>
         <ui-raised-button @click="openControl">打开控制界面</ui-raised-button>
         <div class="qrcode">
             <img :src="qrcodeUrl">
@@ -36,10 +37,10 @@
                         },
                         {
                             type: 'icon',
-                            icon: 'apps',
-                            href: 'https://app.yunser.com/',
+                            icon: 'help',
+                            href: 'https://project.yunser.com/products/c173ca902fc711ea9ea36110fb61a9f5',
                             target: '_blank',
-                            title: '应用'
+                            title: '帮助'
                         }
                     ]
                 }
@@ -53,11 +54,15 @@
         },
         methods: {
             openUrl() {
-                let url = `/screens/${this.code}`
+                let url = `/asks/${this.code}`
+                window.open(url, '_blank')
+            },
+            openMine() {
+                let url = `/asks/${this.code}/mine`
                 window.open(url, '_blank')
             },
             openControl() {
-                let url = `/screens/${this.code}/control`
+                let url = `/asks/${this.code}/control`
                 window.open(url, '_blank')
             },
             clickText() {
@@ -86,7 +91,10 @@
                     this.code = code
                     this.socket.on('text', text => {
                         console.log('on text', text)
-                        this.text = text
+                        let data = JSON.parse(text)
+                        if (data.type === 'question') {
+                            this.text = data.data
+                        }
                     })
                 })
                 this.socket.on('connect_failed', id => {

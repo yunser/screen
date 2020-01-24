@@ -1,14 +1,15 @@
 <template>
-    <my-page title="屏幕" :page="page">
+    <my-page title="屏幕控制端" :page="page">
         <div class="common-container container">
             <div :class="['text', isFullScreen ? 'full-screen' : '']" @click="clickText">{{ text }}</div>
+            <ui-text-field v-model="formData.text" label="内容" multiLine :rows="3" :rowsMax="6"/>
+            <br />
+            <ui-raised-button primary @click="send">发送</ui-raised-button>
+            <div class="qrcode">
+                <img :src="qrcodeUrl">
+            </div>
         </div>
         <div class="status">{{ status }}</div>
-        <ui-raised-button @click="openUrl">打开链接</ui-raised-button>
-        <ui-raised-button @click="openControl">打开控制界面</ui-raised-button>
-        <div class="qrcode">
-            <img :src="qrcodeUrl">
-        </div>
     </my-page>
 </template>
 
@@ -24,29 +25,19 @@
                 isFullScreen: false,
                 text: 'Hello',
                 status: '未连接',
+                formData: {
+                    text: '123',
+                },
                 code: '',
                 comments: [],
                 page: {
                     menu: [
-                        {
-                            type: 'icon',
-                            icon: 'fullscreen',
-                            click: this.fullScreen,
-                            title: '全屏'
-                        },
-                        {
-                            type: 'icon',
-                            icon: 'apps',
-                            href: 'https://app.yunser.com/',
-                            target: '_blank',
-                            title: '应用'
-                        }
                     ]
                 }
             }
         },
         mounted() {
-            let url = window.location.origin + `/screens/${this.code}`
+            let url = window.location.origin + `/screens/${this.code}/control`
             this.qrcodeUrl = `https://nodeapi.yunser.com/qrcode?content=${encodeURIComponent(url)}`
             //
             this.initWebSocket()
@@ -69,11 +60,12 @@
                 this.isFullScreen = true
             },
             initWebSocket() {
-                let code = this.$storage.get('screenCode')
-                if (!code) {
-                    code = '' + new Date().getTime() + Math.ceil(Math.random() * 1000)
-                    this.$storage.set('screenCode', code)
-                }
+                let code = this.$route.params.id
+                // let code = this.$storage.get('screenCode')
+                // if (!code) {
+                //     code = '' + new Date().getTime() + Math.ceil(Math.random() * 1000)
+                //     this.$storage.set('screenCode', code)
+                // }
                 console.log('code', code)
                 this.status = '正在链接'
                 this.socket = window.io.connect(config.ws, {
@@ -93,29 +85,20 @@
                     this.status = '连接失败'
                 })
             },
-            commnet() {
-                if (!this.$store.state.user) {
-                    this.$message({
-                        type: 'danger',
-                        text: '请先登录'
-                    })
-                    return
-                }
-                if (!this.content) {
+            send() {
+                if (!this.formData.text) {
                     this.$message({
                         type: 'danger',
                         text: '请输入内容'
                     })
                     return
                 }
-                this.$http.post(`/types/test/comments`, {
-                    content: this.content,
-                }).then(
+                this.$http.get(`/screens/${this.code}?text=${this.formData.text}`).then(
                     response => {
                         let data = response.data
                         console.log(data)
-                        this.content = ''
-                        this.loadData()
+                        // this.content = ''
+                        // this.loadData()
                     },
                     res => {
                         this.$message({
@@ -167,8 +150,10 @@
 }
 .text {
     font-size: 56px;
-    padding: 240px 0;
+    padding: 120px 0;
     text-align: center;
+    border: 1px solid #000;
+    border-radius: 8px;
 }
 .container {
     max-width: 480px;

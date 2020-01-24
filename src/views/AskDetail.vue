@@ -4,8 +4,7 @@
             <div :class="['text', isFullScreen ? 'full-screen' : '']" @click="clickText">{{ text }}</div>
         </div>
         <div class="status">{{ status }}</div>
-        <ui-raised-button @click="openUrl">打开链接</ui-raised-button>
-        <ui-raised-button @click="openControl">打开控制界面</ui-raised-button>
+        <!-- <ui-raised-button @click="openUrl">打开链接</ui-raised-button> -->
         <div class="qrcode">
             <img :src="qrcodeUrl">
         </div>
@@ -13,6 +12,7 @@
 </template>
 
 <script>
+    /* eslint-disable */
     import oss from '@/util/oss'
     import config from '@/config'
     const moment = window.moment
@@ -21,7 +21,7 @@
         data () {
             return {
                 qrcodeUrl: '',
-                isFullScreen: false,
+                isFullScreen: true,
                 text: 'Hello',
                 status: '未连接',
                 code: '',
@@ -46,9 +46,10 @@
             }
         },
         mounted() {
-            let url = window.location.origin + `/screens/${this.code}`
+            this.code = this.$route.params.id
+            let url = window.location.origin + `/asks/${this.code}/mine`
             this.qrcodeUrl = `https://nodeapi.yunser.com/qrcode?content=${encodeURIComponent(url)}`
-            //
+
             this.initWebSocket()
         },
         methods: {
@@ -56,24 +57,20 @@
                 let url = `/screens/${this.code}`
                 window.open(url, '_blank')
             },
-            openControl() {
-                let url = `/screens/${this.code}/control`
-                window.open(url, '_blank')
-            },
             clickText() {
-                if (this.isFullScreen) {
-                    this.isFullScreen = false
-                }
+                // if (this.isFullScreen) {
+                //     this.isFullScreen = false
+                // }
             },
             fullScreen() {
                 this.isFullScreen = true
             },
             initWebSocket() {
-                let code = this.$storage.get('screenCode')
-                if (!code) {
-                    code = '' + new Date().getTime() + Math.ceil(Math.random() * 1000)
-                    this.$storage.set('screenCode', code)
-                }
+                let code = this.$route.params.id
+                // if (!code) {
+                //     code = '' + new Date().getTime() + Math.ceil(Math.random() * 1000)
+                //     this.$storage.set('screenCode', code)
+                // }
                 console.log('code', code)
                 this.status = '正在链接'
                 this.socket = window.io.connect(config.ws, {
@@ -86,7 +83,11 @@
                     this.code = code
                     this.socket.on('text', text => {
                         console.log('on text', text)
-                        this.text = text
+                        // this.text = text
+                        let data = JSON.parse(text)
+                        if (data.type === 'question') {
+                            this.text = data.data
+                        }
                     })
                 })
                 this.socket.on('connect_failed', id => {
@@ -159,6 +160,12 @@
 </script>
 
 <style lang="scss" scoped>
+.qrcode {
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 100000000;
+}
 .status {
     position: absolute;
     right: 16px;
@@ -186,6 +193,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    cursor: pointer;
+    // cursor: pointer;
 }
 </style>
