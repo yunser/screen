@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 
 const Home = resolve => require(['@/views/Home'], resolve)
+
 const ScreenDetail = resolve => require(['@/views/ScreenDetail'], resolve)
 const ScreenControl = resolve => require(['@/views/ScreenControl'], resolve)
 //
@@ -28,6 +29,7 @@ let routes = [
         path: '/home',
         component: Home
     },
+    { path: '/box', component: resolve => require(['@/views/Box'], resolve) },
     {
         path: '/asks/:id/control',
         component: AskControl

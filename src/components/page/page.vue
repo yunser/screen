@@ -11,6 +11,9 @@
                 <ui-list-item title="匿名提问" to="/ask">
                     <ui-icon slot="left" value="grade"/>
                 </ui-list-item>
+                <ui-list-item title="小屏幕" to="/box" target="_blank">
+                    <ui-icon slot="left" value="grade"/>
+                </ui-list-item>
                 <ui-list-item title="关于" href="https://project.yunser.com/products/6b591dc094d811e9a9eac1986cc468ce" target="_blank">
                     <ui-icon slot="left" value="info"/>
                 </ui-list-item>
