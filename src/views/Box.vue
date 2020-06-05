@@ -1,5 +1,5 @@
 <template>
-    <div class="box">
+    <div :class="['box', sizeClass]">
         <div class="controlBar">
             <div class="controlBox">
                 <div class="cellRow">
@@ -58,41 +58,19 @@
                 </div>
             </div>
         </div>
-        <!-- <a class="help" href="https://project.yunser.com/products/041ec330655211eab00fdfae25c3a48b" target="_blank">帮助</a> -->
         <div class="widgetList">
-            <div class="widget timeBox" v-if="time">
-                <div class="day">{{ time.date }}，星期{{ time.week }}</div>
-                <div class="time">{{ time.time }}</div>
+            <div class="widget iframeBox" v-for="plugin in plugins">
+                <iframe class="iframe" :src="plugin.url" frameborder="0"></iframe>
             </div>
-            <div class="widget todoBox">
+            <!-- <div class="widget todoBox">
                 <h2 class="widgetTitle">代办</h2>
                 <ul class="list">
                     <li class="item">事项1</li>
                     <li class="item">事项2</li>
                     <li class="item">事项3</li>
                 </ul>
-            </div>
-            <div class="widget todoBox">
-                <div class="saying" @click="editSaying">{{ text }}</div>
-            </div>
-            <div class="widget todoBox">
-                <h2 class="widgetTitle">消息</h2>
-                <ul class="list">
-                    <li class="item">消息1</li>
-                    <li class="item">消息2</li>
-                    <li class="item">消息3</li>
-                </ul>
-            </div>
+            </div> -->
         </div>
-        <!-- <div class="common-container container">
-            <div :class="['text', isFullScreen ? 'full-screen' : '']" @click="clickText">{{ text }}</div>
-        </div> -->
-        <!-- <div class="status">{{ status }}</div> -->
-        <!-- <ui-raised-button @click="openUrl">打开链接</ui-raised-button>
-        <ui-raised-button @click="openControl">打开控制界面</ui-raised-button>
-        <div class="qrcode">
-            <img :src="qrcodeUrl">
-        </div> -->
     </div>
 </template>
 
@@ -105,6 +83,24 @@
     export default {
         data () {
             return {
+                plugins: [
+                    {
+                        id: '1',
+                        url: 'https://time.yunser.com/time/plugin',
+                    },
+                    {
+                        id: '2',
+                        url: 'https://time.yunser.com/stopWatchSm',
+                    },
+                    {
+                        id: '3',
+                        url: 'https://time.yunser.com/goOffWork',
+                    },
+                    {
+                        id: '4',
+                        url: 'https://chinese.yunser.com/saying/plugin',
+                    },
+                ],
                 time: null,
                 charging: false,
                 battery: 0,
@@ -114,6 +110,7 @@
                 status: '未连接',
                 code: '',
                 comments: [],
+                sizeClass: '',
                 page: {
                     menu: [
                         {
@@ -170,11 +167,23 @@
             })
 
             this.text = this.$storage.get('saying', '') || '<点击编辑文字>'
+            this.initSize()
+            window.addEventListener('resize', this.initSize)
+
+            document.title = '小屏幕'
         },
         destroyed() {
             this.timer && clearInterval(this.timer)
+            window.removeEventListener('resize', this.initSize)
         },
         methods: {
+            initSize() {
+                if (document.body.clientWidth < 400 || document.body.clientHeight < 400) {
+                    this.sizeClass = 'smallBox'
+                } else {
+                    this.sizeClass = 'largeBox'
+                }
+            },
             updateTime() {
                 function offset(zone) {
                     let num = parseInt(zone.replace('+', ''))
@@ -316,9 +325,23 @@
 </script>
 
 <style lang="scss" scoped>
+.iframeBox {
+    padding: 0 !important;
+    .iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+}
 .saying {
     font-size: 48px;
     cursor: pointer;
+}
+.smallBox {
+    .saying {
+        font-size: 24px;
+        cursor: pointer;
+    }
 }
 .controlBar {
     position: fixed;
@@ -462,28 +485,40 @@
     .widgetTitle {
         font-size: 32px;
         font-weight: bold;
-        // text-align: center;
         margin-bottom: 16px;
     }
 }
-.timeBox {
-    // position: absolute;
-    // top: 0;
-    // left: 0;
-    // background: #f00;
-    
-    // display: flex;
-    // align-items: center;
-    // justify-content: center;
-    // flex-direction: column;
-    padding-top: 80px;
-    padding-left: 80px;
-    .day {
-        font-size: 32px;
+.smallBox {
+    // padding-bottom: ;
+    .widgetTitle {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 8px;
     }
-    .time {
-        font-size: 96px;
+}
 
+.largeBox {
+    .timeBox {
+        padding-top: 32px;
+        padding-left: 32px;
+        .day {
+            font-size: 32px;
+        }
+        .time {
+            font-size: 96px;
+        }
+    }
+}
+.smallBox {
+    .timeBox {
+        padding-top: 24px;
+        padding-left: 24px;
+        .day {
+            font-size: 24px;
+        }
+        .time {
+            font-size: 56px;
+        }
     }
 }
 .todoBox {
@@ -496,6 +531,20 @@
         margin-bottom: 8px;
     }
 }
+.smallBox {
+    .todoBox {
+        padding: 24px;
+    }
+    .list {
+        padding-left: 16px;
+        .item {
+            list-style: disc;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+    }
+}
+
 .status {
     position: absolute;
     right: 16px;
